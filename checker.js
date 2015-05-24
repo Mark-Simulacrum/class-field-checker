@@ -140,5 +140,3 @@ for (let i = 2; i < process.argv.length; i++) {
 }
 
 errors.forEach(error => process.stderr.write(error));
-
-// process.stderr.write(JSON.stringify(parsed, null, 2));
