@@ -4,5 +4,18 @@
   },
   "devDependencies": {
     "babel": "^5.4.7"
-  }
+  },
+  "name": "class-field-checker",
+  "version": "1.0.0",
+  "description": "Check that no fields but those declared in the constructor of a class are used within that class.",
+  "main": "checker.es5.js",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Mark-Simulacrum/class-field-checker.git"
+  },
+  "author": "Mark-Simulacrum",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Mark-Simulacrum/class-field-checker/issues"
+  },
 }
