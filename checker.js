@@ -1,4 +1,5 @@
 import fs from "fs";
+import uniq from "lodash.uniq";
 import * as acorn from "acorn";
 
 if (process.argv.length < 3) {
@@ -53,29 +54,63 @@ for (let i = 2; i < process.argv.length; i++) {
     try {
         let parsed = acorn.parse(input, { ecmaVersion: 6, sourceType: "module" });
 
+        let classes = {};
+
         find(parsed, { type: "ClassDeclaration" }, function (key, value) {
             let className = value.id.name;
-            process.stdout.write(`Class declaration found: ${className}\n`);
+            classes[className] = {};
+            let currentClass = classes[className];
 
-            let declarations = [];
+            currentClass.superClass = value.superClass ? value.superClass.name : null;
+            currentClass.children = [];
+            currentClass.declarations = [];
 
             find(value.body.body, { type: "MethodDefinition" }, function (key, value) {
                 if (value.kind === "constructor") {
-                    find(value, { type: "FunctionExpression" }, function (key, value) {
+                    find(value, { type: "FunctionExpression", body: { type: "MemberExpression" } }, function (key, value) {
                         find(value.body, { type: "MemberExpression" }, function (key, value) {
                             if (value.object.type === "ThisExpression") {
                                 let declaration = input.slice(value.start, value.end);
-                                if (declarations.indexOf(declaration) === -1) {
-                                    declarations.push(declaration);
+                                if (currentClass.declarations.indexOf(declaration) === -1) {
+                                    currentClass.declarations.push(declaration);
                                 }
                             }
                         });
                     });
                 }
-                declarations.push(`this.${value.key.name}`);
+                currentClass.declarations.push(`this.${value.key.name}`);
             });
+        });
 
-            process.stdout.write(`\tDeclarations:\n\t\t${declarations.join("\n\t\t")}\n`);
+        for (let className of Object.keys(classes)) {
+            let currentClass = classes[className];
+            let superClass = classes[currentClass.superClass];
+
+            if (!superClass) continue;
+
+            superClass.children.push(currentClass);
+        }
+
+        for (let className of Object.keys(classes)) {
+            let currentClass = classes[className];
+            let parentDeclarations = currentClass.declarations;
+
+            for (let childClass of currentClass.children) {
+                childClass.declarations.push(...parentDeclarations);
+                childClass.declarations = uniq(childClass.declarations);
+            }
+        }
+
+        for (let className of Object.keys(classes)) {
+            let currentClass = classes[className];
+            let extendsStr = currentClass.superClass ? ` extends ${currentClass.superClass}` : "";
+            process.stdout.write(`Class declaration found: ${className}${extendsStr}\n`);
+            process.stdout.write(`\tDeclarations:\n\t  ${currentClass.declarations.join("\n\t  ")}\n`);
+        }
+
+        find(parsed, { type: "ClassDeclaration" }, function (key, value) {
+            let className = value.id.name;
+            let currentClass = classes[className];
 
             find(value.body.body, { type: "MethodDefinition", value: { type: "FunctionExpression" } }, function (key, value) {
                 find(value.value.body, { type: "MemberExpression" }, function (key, value) {
@@ -89,7 +124,7 @@ for (let i = 2; i < process.argv.length; i++) {
                             declaration = declaration.replace(/^(.*?)\[.*?/, /$1/);
                         }
 
-                        if (declarations.indexOf(declaration) === -1) {
+                        if (currentClass.declarations.indexOf(declaration) === -1) {
                             let loc = acorn.getLineInfo(input, value.start);
                             let location = `${fileName}:${loc.line}:${loc.column + 1}`;
                             errors.push(`${location}: "${declaration}" not initialized in constructor of class ${className}\n`);
