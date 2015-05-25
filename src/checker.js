@@ -1,3 +1,4 @@
+import "babel-core/polyfill";
 import fs from "fs";
 import path from "path";
 import find from "lodash.find";
