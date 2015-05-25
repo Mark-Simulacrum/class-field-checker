@@ -1,4 +1,4 @@
 build:
-	babel --source-maps inline checker.js > checker.js5
-	sed -i -e '1i#!/usr/bin/env node' checker.js5
-	chmod u+x ./checker.js5
+	babel --source-maps inline src --out-dir lib
+	sed -i -e '1i#!/usr/bin/env node' lib/checker.js
+	chmod u+x lib/checker.js

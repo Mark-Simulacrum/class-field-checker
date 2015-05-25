@@ -1,21 +1,21 @@
 {
   "dependencies": {
     "acorn": "^2.0.1",
-    "lodash.uniq": "^3.2.0"
+    "lodash.find": "^3.2.1"
   },
   "devDependencies": {
     "babel": "^5.4.7"
   },
   "name": "class-field-checker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Check that no fields but those declared in the constructor of a class are used within that class.",
-  "main": "checker.js5",
+  "main": "./lib/checker.js",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/Mark-Simulacrum/class-field-checker.git"
   },
   "bin": {
-    "checker": "./checker.js5"
+    "checker": "./lib/checker.js"
   },
   "author": "Mark-Simulacrum",
   "license": "MIT",
